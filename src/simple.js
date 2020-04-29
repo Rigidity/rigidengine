@@ -1,0 +1,3 @@
+(function(m) {
+	
+})(rigid.simple = {});

@@ -1,0 +1,24 @@
+{
+  "name": "mystic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rigidity/RigidEngine.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rigidity/RigidEngine/issues"
+  },
+  "homepage": "https://github.com/Rigidity/RigidEngine#readme",
+  "dependencies": {
+    "grunt": "^1.1.0",
+    "grunt-contrib-concat": "^1.0.1"
+  }
+}
