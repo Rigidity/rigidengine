@@ -1,4 +1,23 @@
 (function(m) {
+
+	m.property = function({object = {}, name = "property", getter, setter} = {}) {
+		if (object.hasOwnProperty(name)) {
+			return object;
+		}
+		Object.defineProperty(object, name, {
+			get: getter,
+			set: setter
+		});
+		return object;
+	}
+	m.unproperty = function({object = {}, name} = {}) {
+		if (!object.hasOwnProperty(name)) {
+			return object;
+		}
+		delete object[name];
+		return object;
+	}
+
 	m.time = function() {
         return new Date().getTime();
 	}
@@ -25,7 +44,7 @@
 				const delay = 1000 / timer.fps;
 				while (remainder >= delay) {
 					remainder -= delay;
-					timer.callback();
+					timer.callback(delta);
 				}
 				timer.timeout = setTimeout(step, delay - remainder);
 			}
@@ -43,5 +62,6 @@
 			}
 			return this;
 		}
-    }
+	}
+	
 })(rigid.utils = {});
