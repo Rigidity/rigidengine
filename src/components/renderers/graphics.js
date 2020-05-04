@@ -25,6 +25,8 @@
 			if (entity.exists) {
 				this.graphicsRemover();
 			}
+			entity.events.unregister("add", this.graphicsAdder);
+			entity.events.unregister("remove", this.graphicsRemover);
 		}
 	}
 

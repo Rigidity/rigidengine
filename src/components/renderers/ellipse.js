@@ -1,12 +1,11 @@
 (function(m) {
 
 	m.Ellipse = class Ellipse extends m.Graphics {
-		constructor({color = 0xFFFFFF, ...options} = {}) {
-			super({...options, callback: (ctx, width, height) => {
-				ctx.beginFill(this.color);
-				ctx.drawEllipse(0, 0, width / 2, height / 2);
-			}});
-			this.color = color;
+		constructor({color = 0xFFFFFF, resolution = 64, ...options} = {}) {
+			super(options);
+			this.graphics.beginFill(color);
+			this.graphics.drawEllipse(0, 0, resolution / 2, resolution / 2);
+			this.graphics.scale.set(1 / resolution, 1 / resolution);
 		}
 	}
 

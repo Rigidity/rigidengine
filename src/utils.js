@@ -37,6 +37,9 @@
 			var remainder = 0;
 			const timer = this;
 			function step() {
+				if (!timer.state) {
+					return;
+				}
 				var newTime = m.time();
 				const delta = newTime - oldTime;
 				oldTime = newTime;
@@ -44,7 +47,13 @@
 				const delay = 1000 / timer.fps;
 				while (remainder >= delay) {
 					remainder -= delay;
+					if (!timer.state) {
+						return;
+					}
 					timer.callback(delta);
+				}
+				if (!timer.state) {
+					return;
 				}
 				timer.timeout = setTimeout(step, delay - remainder);
 			}

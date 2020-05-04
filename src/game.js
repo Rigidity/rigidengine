@@ -1,11 +1,5 @@
 (function(m) {
 	
-	m.triggerEntityRecursively = function(entity, name, event) {
-		entity.children.forEach(child => {
-			m.triggerEntityRecursively(child, name, event);
-		});
-		entity.events.trigger(name, event);
-	}
 	m.Game = class Game {
 		constructor() {
 			this.events = new rigid.event.Listener();
@@ -21,7 +15,7 @@
 						delta: delta
 					});
 					this.entities.forEach(entity => {
-						m.triggerEntityRecursively(entity, "tick", {delta: delta});
+						entity.events.trigger("tick", {delta: delta});
 					});
 				}
 			});
@@ -32,35 +26,29 @@
 					this.exists = false;
 					this.events = new rigid.event.Listener();
 					this.components = new rigid.component.System(this,
-						() => m.triggerEntityRecursively(this, "preupdate"),
-						() => m.triggerEntityRecursively(this, "postupdate")
+						() => this.events.trigger("preupdate"),
+						() => this.events.trigger("postupdate")
 					);
-					this.children = [];
-					this.parent = null;
-				}
-				add(child) {
-					if (this.children.contains(child) || child.parent != null) {
-						return this;
-					}
-					m.triggerEntityRecursively(this, "preupdate");
-					this.children.add(child);
-					child.parent = this;
-					m.triggerEntityRecursively(child, "add");
-					m.triggerEntityRecursively(this, "postupdate");
-					return this;
-				}
-				remove(child) {
-					if (!this.children.contains(child)) {
-						return this;
-					}
-					m.triggerEntityRecursively(this, "preupdate");
-					m.triggerEntityRecursively(child, "remove");
-					this.children.remove(child);
-					child.parent = null;
-					m.triggerEntityRecursively(this, "postupdate");
-					return this;
 				}
 			}
+		}
+		destroy() {
+			for (const key in this.events.handlers) {
+				delete this.events.handlers[key];
+			}
+			this.entities.slice().forEach(entity => {
+				for (const key in entity.events.handlers) {
+					delete entity.events.handlers[key];
+				}
+				entity.components.items.slice().forEach(component => {
+					entity.components.remove(component);
+				});
+				this.remove(entity);
+			});
+			this.components.items.slice().forEach(component => {
+				this.components.remove(component);
+			});
+			this.timer.stop();
 		}
 		add(entity) {
 			if (this.entities.contains(entity)) {
