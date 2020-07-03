@@ -22,6 +22,15 @@
 					sim.system.remove(this.body);
 				}
 			}
+			this.bodyUpdater = () => {
+				if (!entity.components.has(rigid.component.Transform)) return;
+				this.body.x = entity.x + this.x;
+				this.body.y = entity.y + this.y;
+				this.body.scale_x = entity.w * this.w;
+				this.body.scale_y = entity.h * this.h;
+				this.body.scale = entity.w * this.w;
+				this.body.angle = rigid.math.radians(entity.angle + this.angle);
+			}
 			entity.events.register("add", this.bodyAdder);
 			entity.events.register("remove", this.bodyRemover);
 			entity.events.register("postupdate", this.bodyUpdater);

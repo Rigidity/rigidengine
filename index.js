@@ -1,262 +1,165 @@
-function newGame() {
-	rigid.asset.multiple({
-		virus: ["sprite", "virus.png"],
-		shield: ["sprite", "shield.png", {alias: true}]
-	}, assets => {
-		const game = new rigid.game.Game;
-		game.components.add(new rigid.component.Application);
-		game.components.add(new rigid.component.Simulation);
-		game.background = 0xFFFFCC
-		var points = 0;
-		const score = new game.Entity;
-		score.components.add(new rigid.component.Transform);
-		score.components.add(new rigid.component.render.Text({
-			text: points, color: 0, size: 32
-		}));
-		game.add(score);
-		const repositionScore = () => {
-			score.x = -game.w / 2 + 48;
-			score.y = -game.h / 2 + 48;
-		};
-		repositionScore();
-		game.events.register("resize", repositionScore);
-		var scoreAmount = 0;
-		game.events.register("tick", () => {
-			scoreAmount++;
-			if (scoreAmount >= 5) {
-				points++;
-				scoreAmount = 0;
-			}
-			score.text = "" + points;
-		});
-		const player = new game.Entity;
-		player.components.add(new rigid.component.Transform({
-			w: 64, h: 64
-		}));
-		player.components.add(new rigid.component.render.Ellipse({
-			color: 0,
-			order: 1
-		}));
-		player.components.add(new rigid.component.collide.Circle);
-		player.fading = false;
-		const basespeed = 0.9;
-		var speed = basespeed;
-		var factor = 0.87;
-		var motionX = 0;
-		var motionY = 0;
-		var easiness = 0.984;
-		player.events.register("tick", () => {
-			if (player.fading > 0) {
-				player.w -= 0.205;
-				player.h -= 0.205;
-				speed += 0.0062;
-				player.fading--;
-			} else {
-				player.fading = 0;
-			}
-			player.opacity = player.w / 64;
-			if (player.w <= 16 || player.h <= 16) {
-				const overlay = new game.Entity;
-				overlay.components.add(new rigid.component.Transform);
-				overlay.components.add(new rigid.component.render.Rect({
-					color: 0
-				}));
-				overlay.opacity = 0.5;
-				const resizeOverlay = () => {
-					overlay.w = game.w;
-					overlay.h = game.h;
-				};
-				resizeOverlay();
-				game.events.register("resize", resizeOverlay);
-				game.add(overlay);
-				const message = new game.Entity;
-				message.components.add(new rigid.component.Transform({
-					y: -32
-				}));
-				message.components.add(new rigid.component.render.Text({
-					text: "Fatality", color: 0xFF0000, size: 64, order: 2
-				}));
-				game.add(message);
-				const message2 = new game.Entity;
-				message2.components.add(new rigid.component.Transform({
-					y: 48
-				}));
-				message2.components.add(new rigid.component.render.Text({
-					text: "Score: " + points + "\nClick to Restart", color: 0xFFFFFF, size: 32, order: 2
-				}));
-				game.add(message2);
-				game.remove(score);
-				game.remove(player);
-				game.events.register("click", () => {
-					game.destroy();
-					newGame();
-				});
-				game.timer.stop();
-			}
-		});
-		game.add(player);
-		class Virus extends game.Entity {
-			constructor(x, y) {
-				super();
-				this.components.add(new rigid.component.Transform);
-				this.components.add(new rigid.component.render.Sprite({
-					sprite: assets.virus
-				}));
-				this.components.add(new rigid.component.collide.Circle);
-				this.x = x;
-				this.y = y;
-				const size = Math.random() * 32 + 24;
-				this.angry = size < 32;
-				this.w = size;
-				this.h = size;
-				this.angle = Math.random() * 360;
-				this.fading = false;
-				this.events.register("tick", () => {
-					if (this.fading) {
-						this.opacity -= 0.03;
-					}
-					if (this.opacity <= 0) {
-						game.remove(this);
-						viruses.remove(this);
-					}
-					if (this.angry) {
-						this.angle = rigid.math.angleBetween(this, player);
-						rigid.math.moveTowards(this, this.angle, 0.4);
-					}
-				});
-			}
-		}
-		class Shield extends game.Entity {
-			constructor(x, y) {
-				super();
-				this.components.add(new rigid.component.Transform);
-				this.components.add(new rigid.component.render.Sprite({
-					sprite: assets.shield
-				}));
-				this.components.add(new rigid.component.collide.Rect);
-				this.x = x;
-				this.y = y;
-				const size = Math.random() * 16 + 40;
-				this.w = size;
-				this.h = size;
-				this.fading = false;
-				this.events.register("tick", () => {
-					if (this.fading) {
-						this.opacity -= 0.03;
-					}
-					if (this.opacity <= 0) {
-						game.remove(this);
-						shields.remove(this);
-					}
-				});
-			}
-		}
-		const viruses = [];
-		const shields = [];
-		function makeVirus() {
-			const virus = new Virus(
-				Math.random() * game.w - game.w / 2,
-				Math.random() * game.h - game.h / 2
-			);
-			game.add(virus);
-			var removed = false;
-			if (player.collision(virus)) {
-				removed = true;
-			} else {
-				viruses.forEach(other => {
-					if (!removed && virus.collision(other)) {
-						removed = true;
-					}
-				});
-				shields.forEach(other => {
-					if (!removed && virus.collision(other)) {
-						removed = true;
-					}
-				});
-			}
-			if (removed) {
-				game.remove(virus);
-			} else {
-				viruses.add(virus);
-			}
-		}
-		function makeShield() {
-			const shield = new Shield(
-				Math.random() * game.w - game.w / 2,
-				Math.random() * game.h - game.h / 2
-			);
-			game.add(shield);
-			var removed = false;
-			if (player.collision(shield)) {
-				removed = true;
-			} else {
-				viruses.forEach(other => {
-					if (!removed && shield.collision(other)) {
-						removed = true;
-					}
-				});
-				shields.forEach(other => {
-					if (!removed && shield.collision(other)) {
-						removed = true;
-					}
-				});
-			}
-			if (removed) {
-				game.remove(shield);
-			} else {
-				shields.add(shield);
-			}
-		}
-		for (var i = 0; i < 12; i++) {
-			makeVirus();
-		}
-		for (var i = 0; i < 1; i++) {
-			makeShield();
-		}
-		game.events.register("tick", () => {
-			if (Math.random() > easiness) makeVirus();
-			if (Math.random() > 0.992) makeShield();
-			const point = new Point(game.mouseX, game.mouseY);
-			const res = {
-				x: motionX, y: motionY
-			};
-			rigid.math.moveTowards(res, rigid.math.angleBetween(player, point), rigid.math.clamp(rigid.math.distance(player, point) / 512 * speed, 0, speed));
-			motionX = res.x;
-			motionY = res.y;
-			player.x += motionX;
-			player.y += motionY;
-			motionX *= factor;
-			motionY *= factor;
-			viruses.forEach(virus => {
-				if (!virus.fading && player.collision(virus)) {
-					virus.fading = true;
-					player.fading = 30;
-				}
-			});
-			shields.forEach(shield => {
-				if (!shield.fading && player.collision(shield)) {
-					shield.fading = true;
-					player.fading = 0;
-					speed = (speed * 4 + basespeed) / 5;
-					viruses.forEach(virus => {
-						if (rigid.math.distance(virus, shield) <= 200) {
-							virus.fading = true;
-						}
-					});
-					easiness *= 0.996;
-				}
-			});
-		});
-		game.events.register("click", () => {
-			const point = new Point(game.mouseX, game.mouseY);
-			viruses.forEach(virus => {
-				if (!virus.fading && virus.components.get(rigid.component.Collider).body.collides(point)) {
-					virus.fading = true;
-					easiness *= 0.996;
-				}
-			});
-		});
-		game.timer.start();
-	});
+window.onerror = function(...e) {
+	alert(e);
 }
-newGame();
+
+function setup() {
+	const game = new rigid.game.Game;
+	game.components.add(new rigid.component.Application);
+	game.components.add(new rigid.component.Simulation);
+	game.background = 0x000022;
+
+	const sun = new rigid.entity.Entity;
+	sun.components.add(new rigid.component.Transform);
+	sun.components.add(new rigid.component.render.Ellipse({
+		color: 0xEDED00
+	}));
+	sun.components.add(new rigid.component.collide.Circle);
+	sun.w = sun.h = 56;
+
+	const ship = new rigid.entity.Entity;
+	ship.components.add(new rigid.component.Transform);
+	ship.components.add(new rigid.component.render.Rect({
+		color: 0xFFDDEE
+	}));
+	ship.components.add(new rigid.component.collide.Rect);
+	ship.w = 30;
+	ship.h = 24;
+	ship.x = -game.w / 2.6;
+	ship.angle = -115;
+
+	var extra = 0;
+	var gravity = 1;
+
+	const rocks = [];
+
+	function rock() {
+		const r = new rigid.entity.Entity;
+		r.components.add(new rigid.component.Transform);
+		r.components.add(new rigid.component.render.Ellipse({
+			color: 0xAAAAAA
+		}));
+		r.w = r.h = 20;
+		var side = Math.random();
+		if (side >= 0.75) {
+			side = "top";
+		} else if (side >= 0.5) {
+			side = "left";
+		} else if (side >= 0.25) {
+			side = "bottom";
+		} else {
+			side = "right";
+		}
+		if (side == "top") {
+			r.x = Math.random() * game.w - game.w / 2;
+			r.y = -game.h / 2;
+		}
+		if (side == "bottom") {
+			r.x = Math.random() * game.w - game.w / 2;
+			r.y = game.h / 2;
+		}
+		if (side == "left") {
+			r.y = Math.random() * game.h - game.h / 2;
+			r.x = -game.w / 2;
+		}
+		if (side == "right") {
+			r.y = Math.random() * game.h - game.h / 2;
+			r.x = game.w / 2;
+		}
+		r.components.add(new rigid.component.collide.Circle);
+		game.add(r);
+		rocks.push(r);
+	}
+
+	game.events.register("tick", () => {
+		if (Math.random() > 0.982) {
+			rock();
+		}
+		rocks.slice().forEach(r => {
+			r.angle = rigid.math.angleBetween(r, sun);
+			rigid.math.moveTowards(r, r.angle, 2.75);
+			if (r.collision(ship)) {
+				gameover();
+			} else if (r.collision(sun)) {
+				game.remove(r);
+				sun.w++;
+				sun.h++;
+				rocks.splice(rocks.indexOf(r), 1)
+			}
+		});
+		if (ship.x < -game.w / 2 - 64) {
+			gameover();
+		}
+		if (ship.y < -game.h / 2 - 64) {
+			gameover();
+		}
+		if (ship.x > game.w / 2 + 64) {
+			gameover();
+		}
+		if (ship.y > game.h / 2 + 64) {
+			gameover();
+		}
+	});
+
+	const score = new rigid.entity.Entity;
+	score.components.add(new rigid.component.Transform);
+		score.components.add(new rigid.component.render.Text({
+			size: 24,
+			text: "0",
+			color: 0x000000
+		}));
+		score.order = 1;
+		game.add(score);
+	var points = 0;
+
+	function gameover() {
+		const overlay = new rigid.entity.Entity;
+		overlay.components.add(new rigid.component.Transform);
+		overlay.components.add(new rigid.component.render.Rect({
+			color: 0x440044
+		}));
+		overlay.opacity = 0.65;
+		overlay.w = game.w;
+		overlay.h = game.h;
+		game.events.register("resize", () => {
+			overlay.w = game.w;
+			overlay.h = game.h;
+		});
+		game.add(overlay);
+		const text = new rigid.entity.Entity;
+		text.components.add(new rigid.component.Transform);
+		text.components.add(new rigid.component.render.Text({
+			size: 44,
+			text: "Fatality\n\nClick to Play",
+			color: 0xFF8888
+		}));
+		game.add(text);
+		game.events.register("click", () => {
+			game.destroy();
+			setup();
+		});
+		game.timer.stop();
+	}
+
+	game.events.register("tick", () => {
+		const gravityAngle = rigid.math.angleBetween(ship, sun);
+		rigid.math.moveTowards(ship, gravityAngle, gravity);
+		ship.angle += 1.7;
+		rigid.math.moveTowards(ship, ship.angle, 1 + extra);
+		extra *= 0.97;
+		if (ship.collision(sun)) {
+			gameover();
+		}
+		points++;
+		score.text = "" + Math.floor(points / 6);
+	});
+	game.events.register("click", () => {
+		extra += 4;
+	});
+
+	game.add(sun);
+	game.add(ship);
+
+	game.timer.start();
+}
+
+setup();

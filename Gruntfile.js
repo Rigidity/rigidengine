@@ -6,6 +6,7 @@ module.exports = function(grunt) {
 			},
 			dist: {
 				src: [
+					"src/sharedlib.js",
 					"src/engine.js",
 					"src/config.js",
 					"src/utils.js",
@@ -15,8 +16,10 @@ module.exports = function(grunt) {
 					"src/component.js",
 					"src/asset.js",
 					"src/simple.js",
-					"src/network.js",
 					"src/dom.js",
+					"src/network.js",
+					"src/client.js",
+					"src/server.js",
 					"src/components/application.js",
 					"src/components/simulation.js",
 					"src/components/transform.js",
@@ -30,7 +33,7 @@ module.exports = function(grunt) {
 					"src/components/colliders/circle.js",
 					"src/components/colliders/polygon.js",
 					"src/components/colliders/rect.js",
-					"src/components/physics.js",
+					"src/entity.js",
 					"src/game.js",
 					"src/module.js"
 				], dest: "dist/rigid.js"

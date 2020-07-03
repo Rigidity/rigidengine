@@ -8,6 +8,7 @@
 				() => this.events.trigger("postupdate")
 			);
 			this.entities = [];
+			this.entityMap = {};
 			this.timer = new rigid.utils.Timer({
 				fps: 60,
 				callback: delta => {
@@ -19,18 +20,6 @@
 					});
 				}
 			});
-			const game = this;
-			this.Entity = class Entity {
-				constructor() {
-					this.game = game;
-					this.exists = false;
-					this.events = new rigid.event.Listener();
-					this.components = new rigid.component.System(this,
-						() => this.events.trigger("preupdate"),
-						() => this.events.trigger("postupdate")
-					);
-				}
-			}
 		}
 		destroy() {
 			for (const key in this.events.handlers) {
@@ -55,7 +44,9 @@
 				return this;
 			}
 			this.events.trigger("preupdate");
+			entity.game = this;
 			this.entities.add(entity);
+			this.entityMap[entity.id] = entity;
 			entity.exists = true;
 			entity.events.trigger("add");
 			this.events.trigger("postupdate");
@@ -68,7 +59,9 @@
 			this.events.trigger("preupdate");
 			entity.events.trigger("remove");
 			this.entities.remove(entity);
+			delete this.entityMap[entity.id];
 			entity.exists = false;
+			entity.game = null;
 			this.events.trigger("postupdate");
 			return this;
 		}

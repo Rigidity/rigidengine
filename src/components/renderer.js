@@ -8,10 +8,11 @@
 			this.w = w;
 			this.h = h;
 			this.angle = angle;
-			this.container = new PIXI.Container();
-			this.container.zIndex = order;
+			this.order = order;
 		}
 		enable(entity) {
+			this.container = new PIXI.Container();
+			this.container.zIndex = this.order;
 			this.containerAdder = () => {
 				const app = entity.game.components.get(rigid.component.Application);
 				if (app != null) {
@@ -37,7 +38,9 @@
 				setter: num => {
 					if (this.container.zIndex == num) return;
 					this.container.zIndex = num;
-					app.stage.sortChildren();
+					if (entity.game == undefined) return;
+					const app = entity.game.components.get(rigid.component.Application);
+				if (app != null) {app.stage.sortChildren();}
 				}
 			});
 			rigid.utils.property({

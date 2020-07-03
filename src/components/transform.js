@@ -10,68 +10,60 @@
 			this.angle = angle;
 		}
 		enable(entity) {
-			rigid.utils.property({
-				object: entity, name: "x",
-				getter: () => this.x,
-				setter: number => {
-					entity.events.trigger("preupdate");
-					this.x = number;
-					entity.events.trigger("postupdate");
-				}
+			function def(p, g, s) {rigid.utils.property({object: entity, name: p, getter: g, setter: s});}
+			def("x", () => this.x, number => {
+				entity.events.trigger("preupdate");
+				this.x = number;
+				entity.events.trigger("postupdate");
 			});
-			rigid.utils.property({
-				object: entity, name: "y",
-				getter: () => this.y,
-				setter: number => {
-					entity.events.trigger("preupdate");
-					this.y = number;
-					entity.events.trigger("postupdate");
-				}
+			def("y", () => this.y, number => {
+				entity.events.trigger("preupdate");
+				this.y = number;
+				entity.events.trigger("postupdate");
 			});
-			rigid.utils.property({
-				object: entity, name: "w",
-				getter: () => this.w,
-				setter: number => {
-					entity.events.trigger("preupdate");
-					this.w = number;
-					entity.events.trigger("postupdate");
-				}
+			def("w", () => this.w, number => {
+				entity.events.trigger("preupdate");
+				this.w = number;
+				entity.events.trigger("postupdate");
 			});
-			rigid.utils.property({
-				object: entity, name: "h",
-				getter: () => this.h,
-				setter: number => {
-					entity.events.trigger("preupdate");
-					this.h = number;
-					entity.events.trigger("postupdate");
-				}
+			def("h", () => this.h, number => {
+				entity.events.trigger("preupdate");
+				this.h = number;
+				entity.events.trigger("postupdate");
 			});
-			rigid.utils.property({
-				object: entity, name: "angle",
-				getter: () => this.angle,
-				setter: number => {
-					entity.events.trigger("preupdate");
-					this.angle = number;
-					entity.events.trigger("postupdate");
-				}
+			def("angle", () => this.angle, number => {
+				entity.events.trigger("preupdate");
+				this.angle = number;
+				entity.events.trigger("postupdate");
 			});
+			this.serializer = data => {
+				data.x = this.x;
+				data.y = this.y;
+				data.w = this.w;
+				data.h = this.h;
+				data.angle = this.angle;
+			};
+			this.deserializer = data => {
+				entity.events.trigger("preupdate");
+				this.x = data.x;
+				this.y = data.y;
+				this.w = data.w;
+				this.h = data.h;
+				this.angle = data.angle;
+				entity.events.trigger("postupdate");
+			};
+			entity.events.register("serialize", this.serializer);
+			entity.events.register("deserialize", this.deserializer);
 		}
 		disable(entity) {
-			rigid.utils.unproperty({
-				object: entity, name: "x"
-			});
-			rigid.utils.unproperty({
-				object: entity, name: "y"
-			});
-			rigid.utils.unproperty({
-				object: entity, name: "w"
-			});
-			rigid.utils.unproperty({
-				object: entity, name: "h"
-			});
-			rigid.utils.unproperty({
-				object: entity, name: "angle"
-			});
+			function undef(p) {rigid.utils.property({object: entity, name: p});}
+			entity.events.unregister("serialize", this.serializer);
+			entity.events.unregister("deserialize", this.deserializer);
+			undef("x");
+			undef("y");
+			undef("w");
+			undef("h");
+			undef("angle");
 		}
 	}
 

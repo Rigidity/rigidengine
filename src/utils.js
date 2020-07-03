@@ -1,5 +1,15 @@
 (function(m) {
 
+	m.Identifier = class Identifier {
+		constructor(origin = 0) {
+			this.pointer = origin;
+		}
+		id() {
+			return this.pointer++;
+		}
+	}
+	m.baseIdentifier = new m.Identifier();
+
 	m.property = function({object = {}, name = "property", getter, setter} = {}) {
 		if (object.hasOwnProperty(name)) {
 			return object;

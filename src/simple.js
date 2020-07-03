@@ -12,7 +12,6 @@
 		res.components.add(new rigid.component.render.Rect({
 			color: color
 		}));
-		res.components.add(new rigid.component.collide.Rect);
 		return res;
 	}
 	m.ellipse = function(game, color, transform) {
